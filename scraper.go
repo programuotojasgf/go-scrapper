@@ -12,7 +12,7 @@ import (
 
 func main() {
 	scrapeReviewsToDatabase()
-	printReviews()
+	//printReviews()
 }
 
 func scrapeReviewsToDatabase() {
@@ -23,6 +23,10 @@ func scrapeReviewsToDatabase() {
 		content := e.ChildText(".truncate-content-copy")
 		review := data.NewReview(externalId, content)
 		mgm.Coll(review).Create(review)
+	})
+
+	reviewCollector.OnHTML("a[href][rel='next']", func(e *colly.HTMLElement) {
+		e.Request.Visit(e.Attr("href"))
 	})
 
 	reviewsUrl := "https://apps.shopify.com/omnisend/reviews"
