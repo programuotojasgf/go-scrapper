@@ -10,9 +10,13 @@ import (
 )
 
 func main() {
-	testDatabase()
+	printReviews()
 	return
 
+	ScrapeReviewsToDatabase()
+}
+
+func ScrapeReviewsToDatabase() {
 	reviewCollector := colly.NewCollector()
 
 	reviewCollector.OnHTML(".review-listing", func(e *colly.HTMLElement) {
@@ -29,7 +33,7 @@ func main() {
 	reviewCollector.Visit(reviewsUrl)
 }
 
-func testDatabase() {
+func printReviews() {
 	resultReviews := []data.Review{}
 	err := mgm.Coll(&data.Review{}).SimpleFind(&resultReviews, bson.M{})
 	if err != nil {
