@@ -10,7 +10,7 @@ type Review struct {
 	Content          string `json:"content" bson:"content"`
 }
 
-func newReview(externalId int, content string) *Review {
+func NewReview(externalId int, content string) *Review {
 	return &Review{
 		ExternalID: externalId,
 		Content:    content,

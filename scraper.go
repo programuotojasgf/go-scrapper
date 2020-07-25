@@ -7,26 +7,22 @@ import (
 	"github.com/x/y/data"
 	"go.mongodb.org/mongo-driver/bson"
 	"log"
+	"strconv"
 )
 
 func main() {
+	scrapeReviewsToDatabase()
 	printReviews()
-	return
-
-	ScrapeReviewsToDatabase()
 }
 
-func ScrapeReviewsToDatabase() {
+func scrapeReviewsToDatabase() {
 	reviewCollector := colly.NewCollector()
 
 	reviewCollector.OnHTML(".review-listing", func(e *colly.HTMLElement) {
-		id := e.ChildAttr("div", "data-review-id")
-		fmt.Printf("id: %v\n", id)
-
-		shortContent := e.ChildText(".truncate-content-copy")
-		fmt.Printf("Short content: %v\n", shortContent)
-
-		fmt.Println()
+		externalId, _ := strconv.Atoi(e.ChildAttr("div", "data-review-id"))
+		content := e.ChildText(".truncate-content-copy")
+		review := data.NewReview(externalId, content)
+		mgm.Coll(review).Create(review)
 	})
 
 	reviewsUrl := "https://apps.shopify.com/omnisend/reviews"
