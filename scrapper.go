@@ -42,39 +42,3 @@ func testDatabase() {
 		fmt.Println()
 	}
 }
-
-//func testDatabase() {
-//	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb+srv://test_user:4TKpw5P9tPCjscnO@cluster0.ufryp.mongodb.net/scrapper?retryWrites=true&w=majority"))
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-//	err = client.Connect(ctx)
-//	if err != nil {
-//		log.Fatal(err)
-//	}
-//	defer client.Disconnect(ctx)
-//
-//	scrapperDatabase := client.Database("scrapper")
-//	reviewsCollection := scrapperDatabase.Collection("reviews")
-//
-//	cursor, findError := reviewsCollection.Find(
-//		context.Background(),
-//		bson.D{{}},
-//		options.Find(),
-//	)
-//
-//	if findError != nil {
-//		log.Fatal(findError)
-//	}
-//
-//	for cursor.Next(ctx) {
-//		var review Review
-//		err := cursor.Decode(&review)
-//		if err != nil {
-//			log.Fatal(err)
-//		}
-//
-//		fmt.Println(review)
-//	}
-//}
