@@ -1,4 +1,4 @@
-package main
+package phraseCounter
 
 import (
 	"reflect"
@@ -19,7 +19,7 @@ func TestCountPhraseFrequency(t *testing.T) {
 	}
 
 	for _, s := range scenarios {
-		got := CountPhraseFrequency(s.content)
+		got := CountThreeWordPhraseFrequency(s.content)
 		if !reflect.DeepEqual(got, s.expected) {
 			t.Errorf("Did not get expected result for content '%v'. Expected %v, got %v\n",
 				s.content, s.expected, got)

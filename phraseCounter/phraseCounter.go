@@ -1,10 +1,10 @@
-package main
+package phraseCounter
 
 import (
 	"github.com/dlclark/regexp2"
 )
 
-func CountPhraseFrequency(content string) map[string]int {
+func CountThreeWordPhraseFrequency(content string) map[string]int {
 	phraseFrequency := map[string]int{}
 
 	pattern := `\b(?<first>\w+)\s+(?=((?<second>\w+)(\s+)(?<third>\w+)))`

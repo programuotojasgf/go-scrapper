@@ -1,19 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"github.com/Kamva/mgm/v3"
 	"github.com/gocolly/colly/v2"
-	"github.com/x/y/data/models"
+	"github.com/x/y/data"
+	"github.com/x/y/phraseCounter"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"log"
 	"strconv"
 )
 
 func main() {
 	scrapeReviewsToDatabase()
-	//printReviews()
 }
 
 func scrapeReviewsToDatabase() {
@@ -21,13 +18,13 @@ func scrapeReviewsToDatabase() {
 
 	reviewCollector.OnHTML(".review-listing", func(e *colly.HTMLElement) {
 		externalId, _ := strconv.Atoi(e.ChildAttr("div", "data-review-id"))
-		review := models.NewReview(externalId)
-		cursor, _ := mgm.Coll(review).Find(mgm.Ctx(), bson.M{"externalId" : externalId}, options.Find().SetLimit(1))
-		doesExist := cursor.TryNext(mgm.Ctx())
-		if !doesExist {
-			mgm.Coll(review).Create(review)
+		resultReviews := []data.Review{}
+		collection := mgm.Coll(&data.Review{})
+		collection.SimpleFind(&resultReviews, bson.M{"externalId" : externalId})
+		if len(resultReviews) == 0 {
+			collection.Create(data.NewReview(externalId))
 			content := e.ChildText(".truncate-content-copy")
-			recordThreeWordPhraseFrequency(content)
+			upsertThreeWordPhraseFrequency(phraseCounter.CountThreeWordPhraseFrequency(content))
 		}
 	})
 
@@ -39,19 +36,18 @@ func scrapeReviewsToDatabase() {
 	reviewCollector.Visit(reviewsUrl)
 }
 
-func recordThreeWordPhraseFrequency(content string) {
-
-}
-
-func printReviews() {
-	resultReviews := []models.Review{}
-	err := mgm.Coll(&models.Review{}).SimpleFind(&resultReviews, bson.M{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	for _, review := range resultReviews {
-		fmt.Printf("Id: %v\n", review.ExternalID)
-		fmt.Println()
+func upsertThreeWordPhraseFrequency(phraseFrequency map[string]int) {
+	for phrase, frequency := range phraseFrequency{
+		reviewPhrase := &data.ReviewPhrase{}
+		resultReviewPhrases := []data.ReviewPhrase{}
+		collection := mgm.Coll(reviewPhrase)
+		collection.SimpleFind(&resultReviewPhrases, bson.M{"phrase" : phrase})
+		if (len(resultReviewPhrases) > 0) {
+			reviewPhrase = &resultReviewPhrases[0]
+			reviewPhrase.Frequency += frequency
+			collection.Update(reviewPhrase)
+		} else {
+			collection.Create(data.NewReviewPhrase(phrase, frequency))
+		}
 	}
 }
