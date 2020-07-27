@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"github.com/Kamva/mgm/v3"
 	"github.com/gocolly/colly/v2"
-	"github.com/x/y/data"
+	"github.com/x/y/data/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"strconv"
 )
@@ -20,9 +21,14 @@ func scrapeReviewsToDatabase() {
 
 	reviewCollector.OnHTML(".review-listing", func(e *colly.HTMLElement) {
 		externalId, _ := strconv.Atoi(e.ChildAttr("div", "data-review-id"))
-		content := e.ChildText(".truncate-content-copy")
-		review := data.NewReview(externalId, content)
-		mgm.Coll(review).Create(review)
+		review := models.NewReview(externalId)
+		cursor, _ := mgm.Coll(review).Find(mgm.Ctx(), bson.M{"externalId" : externalId}, options.Find().SetLimit(1))
+		doesExist := cursor.TryNext(mgm.Ctx())
+		if !doesExist {
+			mgm.Coll(review).Create(review)
+			content := e.ChildText(".truncate-content-copy")
+			recordThreeWordPhraseFrequency(content)
+		}
 	})
 
 	reviewCollector.OnHTML("a[href][rel='next']", func(e *colly.HTMLElement) {
@@ -33,16 +39,19 @@ func scrapeReviewsToDatabase() {
 	reviewCollector.Visit(reviewsUrl)
 }
 
+func recordThreeWordPhraseFrequency(content string) {
+
+}
+
 func printReviews() {
-	resultReviews := []data.Review{}
-	err := mgm.Coll(&data.Review{}).SimpleFind(&resultReviews, bson.M{})
+	resultReviews := []models.Review{}
+	err := mgm.Coll(&models.Review{}).SimpleFind(&resultReviews, bson.M{})
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	for _, review := range resultReviews {
 		fmt.Printf("Id: %v\n", review.ExternalID)
-		fmt.Printf("Content: %v\n", review.Content)
 		fmt.Println()
 	}
 }

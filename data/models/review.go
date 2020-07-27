@@ -1,4 +1,4 @@
-package data
+package models
 
 import (
 	"github.com/Kamva/mgm/v3"
@@ -7,12 +7,10 @@ import (
 type Review struct {
 	mgm.DefaultModel `bson:",inline"`
 	ExternalID       int    `json:"externalId" bson:"externalId"`
-	Content          string `json:"content" bson:"content"`
 }
 
-func NewReview(externalId int, content string) *Review {
+func NewReview(externalId int) *Review {
 	return &Review{
 		ExternalID: externalId,
-		Content:    content,
 	}
 }
