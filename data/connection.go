@@ -7,5 +7,5 @@ import (
 )
 
 func init() {
-	_ = mgm.SetDefaultConfig(nil, "scrapper", options.Client().ApplyURI(config.Config.ConnectionString))
+	_ = mgm.SetDefaultConfig(nil, config.Config.DatabaseName, options.Client().ApplyURI(config.Config.ConnectionString))
 }

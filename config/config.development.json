@@ -1,3 +1,4 @@
 {
-  "ConnectionString" : ""
+  "ConnectionString" : "",
+  "DatabaseName" : ""
 }

@@ -12,6 +12,7 @@ import (
 
 type Configuration struct {
 	ConnectionString string
+	DatabaseName string
 }
 
 var (
