@@ -6,7 +6,9 @@ import (
 	"github.com/x/y/data"
 	"github.com/x/y/phraseCounter"
 	"go.mongodb.org/mongo-driver/bson"
+	"log"
 	"strconv"
+	"sync"
 )
 
 func main() {
@@ -15,6 +17,9 @@ func main() {
 
 func scrapeReviewsToDatabase() {
 	reviewCollector := colly.NewCollector()
+	reviewContentChannel := make(chan string)
+	waitGroup := &sync.WaitGroup{}
+	reviewPhraseCollectionLock := &sync.Mutex{}
 
 	reviewCollector.OnHTML(".review-listing", func(e *colly.HTMLElement) {
 		externalId, _ := strconv.Atoi(e.ChildAttr("div", "data-review-id"))
@@ -22,9 +27,26 @@ func scrapeReviewsToDatabase() {
 		collection := mgm.Coll(&data.Review{})
 		collection.SimpleFind(&resultReviews, bson.M{"externalId" : externalId})
 		if len(resultReviews) == 0 {
+			log.Printf("New review %d ! Parsing.\n", externalId)
 			collection.Create(data.NewReview(externalId))
 			content := e.ChildText(".truncate-content-copy")
-			upsertThreeWordPhraseFrequency(phraseCounter.CountThreeWordPhraseFrequency(content))
+
+			go func(waitGroup *sync.WaitGroup, reviewContentChannel chan<- string) {
+				waitGroup.Add(1)
+				log.Println("Added another review content for processing!", externalId)
+				reviewContentChannel <- content
+			}(waitGroup, reviewContentChannel)
+
+			go func(waitGroup *sync.WaitGroup, reviewContentChannel <-chan string, reviewPhraseCollectionLock *sync.Mutex) {
+				phraseFrequency := phraseCounter.CountThreeWordPhraseFrequency(<-reviewContentChannel)
+				reviewPhraseCollectionLock.Lock()
+				upsertThreeWordPhraseFrequency(phraseFrequency)
+				reviewPhraseCollectionLock.Unlock()
+				log.Println("Processed another review content!", externalId)
+				waitGroup.Done()
+			}(waitGroup, reviewContentChannel, reviewPhraseCollectionLock)
+		} else {
+			log.Printf("Existing review %d !\n", externalId)
 		}
 	})
 
@@ -34,6 +56,10 @@ func scrapeReviewsToDatabase() {
 
 	reviewsUrl := "https://apps.shopify.com/omnisend/reviews"
 	reviewCollector.Visit(reviewsUrl)
+
+	log.Println("Waiting for all review contents to be processed.")
+	waitGroup.Wait()
+	log.Println("Finished processing all review contents.")
 }
 
 func upsertThreeWordPhraseFrequency(phraseFrequency map[string]int) {
