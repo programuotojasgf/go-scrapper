@@ -18,8 +18,31 @@ func main() {
 	scrapeReviewsToDatabase()
 }
 
+func Find(slice []string, val string) (int, bool) {
+	for i, item := range slice {
+		if item == val {
+			return i, true
+		}
+	}
+	return -1, false
+}
+
+func canConsumePage(page string, visitedPages *[]string, mutex *sync.Mutex) bool {
+	mutex.Lock()
+	_, found := Find(*visitedPages, page)
+	if !found {
+		*visitedPages = append(*visitedPages, page)
+	}
+	mutex.Unlock()
+	return !found
+}
+
 func scrapeReviewsToDatabase() {
-	reviewCollector := colly.NewCollector()
+	reviewCollector := colly.NewCollector(
+		colly.Async(true),
+		)
+	reviewCollector.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 5})
+
 	reviewContentChannel := make(chan string)
 	waitGroup := &sync.WaitGroup{}
 
@@ -50,12 +73,20 @@ func scrapeReviewsToDatabase() {
 		}
 	})
 
-	reviewCollector.OnHTML("a[href][rel='next']", func(e *colly.HTMLElement) {
-		e.Request.Visit(e.Attr("href"))
+	visitedPages := make([]string, 0)
+	var visitedPagesMutex = &sync.Mutex{}
+
+	reviewCollector.OnHTML(".search-pagination__link", func(e *colly.HTMLElement) {
+		nextUrl := e.Attr("href")
+		if canConsumePage(nextUrl, &visitedPages, visitedPagesMutex) {
+			log.Println("Visiting next page %s", nextUrl)
+			e.Request.Visit(nextUrl)
+		}
 	})
 
-	reviewsUrl := "https://apps.shopify.com/omnisend/reviews"
+	reviewsUrl := "https://apps.shopify.com/omnisend/reviews?page=1"
 	reviewCollector.Visit(reviewsUrl)
+	reviewCollector.Wait()
 
 	log.Println("Waiting for all review contents to be processed.")
 	waitGroup.Wait()
