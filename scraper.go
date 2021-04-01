@@ -51,6 +51,7 @@ func scrapeReviewsToDatabase() {
 		resultReviews := []data.Review{}
 		collection := mgm.Coll(&data.Review{})
 		collection.SimpleFind(&resultReviews, bson.M{"externalId" : externalId})
+		// TODO: In theory, if a review is deleted and a shift happens, this might cause concurrency issues if a review appears in 2 pages at once
 		if len(resultReviews) == 0 {
 			log.Printf("New review %d ! Parsing.\n", externalId)
 			collection.Create(data.NewReview(externalId))
