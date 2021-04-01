@@ -1,6 +1,9 @@
 package main
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
 	"github.com/Kamva/mgm/v3"
 	"github.com/gocolly/colly/v2"
 	"github.com/x/y/data"
@@ -19,7 +22,6 @@ func scrapeReviewsToDatabase() {
 	reviewCollector := colly.NewCollector()
 	reviewContentChannel := make(chan string)
 	waitGroup := &sync.WaitGroup{}
-	reviewPhraseCollectionLock := &sync.Mutex{}
 
 	reviewCollector.OnHTML(".review-listing", func(e *colly.HTMLElement) {
 		externalId, _ := strconv.Atoi(e.ChildAttr("div", "data-review-id"))
@@ -37,14 +39,12 @@ func scrapeReviewsToDatabase() {
 				reviewContentChannel <- content
 			}(waitGroup, reviewContentChannel)
 
-			go func(waitGroup *sync.WaitGroup, reviewContentChannel <-chan string, reviewPhraseCollectionLock *sync.Mutex) {
+			go func(waitGroup *sync.WaitGroup, reviewContentChannel <-chan string) {
 				phraseFrequency := phraseCounter.CountThreeWordPhraseFrequency(<-reviewContentChannel)
-				reviewPhraseCollectionLock.Lock()
 				upsertThreeWordPhraseFrequency(phraseFrequency)
-				reviewPhraseCollectionLock.Unlock()
 				log.Println("Processed another review content!", externalId)
 				waitGroup.Done()
-			}(waitGroup, reviewContentChannel, reviewPhraseCollectionLock)
+			}(waitGroup, reviewContentChannel)
 		} else {
 			log.Printf("Existing review %d !\n", externalId)
 		}
@@ -65,15 +65,18 @@ func scrapeReviewsToDatabase() {
 func upsertThreeWordPhraseFrequency(phraseFrequency map[string]int) {
 	for phrase, frequency := range phraseFrequency{
 		reviewPhrase := &data.ReviewPhrase{}
-		resultReviewPhrases := []data.ReviewPhrase{}
+
 		collection := mgm.Coll(reviewPhrase)
-		collection.SimpleFind(&resultReviewPhrases, bson.M{"phrase" : phrase})
-		if (len(resultReviewPhrases) > 0) {
-			reviewPhrase = &resultReviewPhrases[0]
-			reviewPhrase.Frequency += frequency
-			collection.Update(reviewPhrase)
-		} else {
-			collection.Create(data.NewReviewPhrase(phrase, frequency))
+		options := mgm.UpsertTrueOption()
+		filter := bson.M{"phrase" : phrase}
+		updateString := fmt.Sprintf(`{ "$set": { "frequency": { "$add": [{ "$ifNull": ["$frequency", 0] }, %d] } } }`, frequency)
+		var update bson.M
+		json.Unmarshal([]byte(updateString), &update)
+		updatePipeline := []bson.M{update}
+		_, err := collection.UpdateOne(context.Background(), filter, updatePipeline, options)
+
+		if err != nil {
+			log.Panic(err)
 		}
 	}
 }
