@@ -25,10 +25,10 @@ func createConfiguredReviewCollector() *colly.Collector {
 	return reviewCollector
 }
 
-func scrapeReviewsToDatabase(reviewCollector *colly.Collector, reviewsUrl string) {
+func scrapeReviewsToDatabase(reviewCollector *colly.Collector, reviewsURL string) {
 	reviewProcessingWaitGroup := setupReviewCollector(reviewCollector)
 
-	reviewCollector.Visit(reviewsUrl)
+	reviewCollector.Visit(reviewsURL)
 	reviewCollector.Wait()
 
 	log.Println("Waiting for all review contents to be processed.")
@@ -47,9 +47,9 @@ func setupScrappingAndParsingReviews(reviewCollector *colly.Collector) *sync.Wai
 	waitGroup := &sync.WaitGroup{}
 
 	reviewCollector.OnHTML(".review-listing", func(e *colly.HTMLElement) {
-		externalId, _ := strconv.Atoi(e.ChildAttr("div", "data-review-id"))
+		externalID, _ := strconv.Atoi(e.ChildAttr("div", "data-review-id"))
 		collection := data.GetReviewCollection()
-		count, err := collection.CountDocuments(context.Background(), bson.M{"externalId": externalId})
+		count, err := collection.CountDocuments(context.Background(), bson.M{"externalID": externalID})
 
 		if err != nil {
 			panic(err)
@@ -57,28 +57,28 @@ func setupScrappingAndParsingReviews(reviewCollector *colly.Collector) *sync.Wai
 
 		// TODO: In theory, if a review is deleted and a shift happens, this might cause concurrency issues if the same review appears in 2 pages at once
 		if count == 0 {
-			log.Printf("New review %d ! Parsing.\n", externalId)
-			collection.Create(data.NewReview(externalId))
+			log.Printf("New review %d ! Parsing.\n", externalID)
+			collection.Create(data.NewReview(externalID))
 			content := e.ChildText(".truncate-content-copy")
-			go addReviewToReviewContentChannel(externalId, content, waitGroup, reviewContentChannel)
-			go consumeReviewFromReviewContentChannel(externalId, waitGroup, reviewContentChannel)
+			go addReviewToReviewContentChannel(externalID, content, waitGroup, reviewContentChannel)
+			go consumeReviewFromReviewContentChannel(externalID, waitGroup, reviewContentChannel)
 		} else {
-			log.Printf("Existing review %d !\n", externalId)
+			log.Printf("Existing review %d !\n", externalID)
 		}
 	})
 	return waitGroup
 }
 
-func consumeReviewFromReviewContentChannel(externalId int, waitGroup *sync.WaitGroup, reviewContentChannel <-chan string) {
+func consumeReviewFromReviewContentChannel(externalID int, waitGroup *sync.WaitGroup, reviewContentChannel <-chan string) {
 	phraseFrequency := phraseCounter.CountThreeWordPhraseFrequency(<-reviewContentChannel)
 	data.UpsertThreeWordPhraseFrequency(phraseFrequency)
-	log.Println("Processed another review content!", externalId)
+	log.Println("Processed another review content!", externalID)
 	waitGroup.Done()
 }
 
-func addReviewToReviewContentChannel(externalId int, content string, waitGroup *sync.WaitGroup, reviewContentChannel chan<- string) {
+func addReviewToReviewContentChannel(externalID int, content string, waitGroup *sync.WaitGroup, reviewContentChannel chan<- string) {
 	waitGroup.Add(1)
-	log.Println("Added another review content for processing!", externalId)
+	log.Println("Added another review content for processing!", externalID)
 	reviewContentChannel <- content
 }
 
@@ -88,10 +88,10 @@ func setupVisitingPages(reviewCollector *colly.Collector) {
 	var visitedPagesMutex = &sync.Mutex{}
 
 	reviewCollector.OnHTML(".search-pagination__link", func(e *colly.HTMLElement) {
-		nextUrl := e.Attr("href")
-		if canConsumePage(nextUrl, &visitedPages, visitedPagesMutex) {
-			log.Println("Visiting next page ", nextUrl)
-			e.Request.Visit(nextUrl)
+		pageURL := e.Attr("href")
+		if canConsumePage(pageURL, &visitedPages, visitedPagesMutex) {
+			log.Println("Visiting next page ", pageURL)
+			e.Request.Visit(pageURL)
 		}
 	})
 }
