@@ -11,9 +11,9 @@ import (
 )
 
 type Configuration struct {
-	ConnectionString string
-	DatabaseName string
-	ReviewsUrlFirstPage string
+	ConnectionString               string
+	DatabaseName                   string
+	ReviewsUrlFirstPage            string
 	WebsiteVisitorParallelismLimit int
 }
 

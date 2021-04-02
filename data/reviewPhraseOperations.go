@@ -10,7 +10,7 @@ import (
 )
 
 func UpsertThreeWordPhraseFrequency(phraseFrequency map[string]int) {
-	for phrase, frequency := range phraseFrequency{
+	for phrase, frequency := range phraseFrequency {
 		collection := getReviewPhraseCollection()
 		options := mgm.UpsertTrueOption()
 		filter, updatePipeline := createUpsertFilterAndPipeline(phrase, frequency)

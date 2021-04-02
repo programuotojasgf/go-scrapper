@@ -12,10 +12,10 @@ func TestCountPhraseFrequency(t *testing.T) {
 	}{
 		{"", map[string]int{}},
 		{"abc", map[string]int{}},
-		{"abc def ghi", map[string]int{"abc def ghi" : 1}},
-		{"abc def ghi hij", map[string]int{"abc def ghi" : 1, "def ghi hij" : 1}},
+		{"abc def ghi", map[string]int{"abc def ghi": 1}},
+		{"abc def ghi hij", map[string]int{"abc def ghi": 1, "def ghi hij": 1}},
 		{"abc def.ghi hij", map[string]int{}},
-		{"abc def ghi. abc def ghi.", map[string]int{"abc def ghi" : 2}},
+		{"abc def ghi. abc def ghi.", map[string]int{"abc def ghi": 2}},
 	}
 
 	for _, s := range scenarios {

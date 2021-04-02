@@ -6,7 +6,7 @@ import (
 
 type Review struct {
 	mgm.DefaultModel `bson:",inline"`
-	ExternalID       int    `json:"externalId" bson:"externalId"`
+	ExternalID       int `json:"externalId" bson:"externalId"`
 }
 
 func NewReview(externalId int) *Review {
