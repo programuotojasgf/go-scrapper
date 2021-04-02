@@ -90,7 +90,7 @@ func setupVisitingPages(reviewCollector *colly.Collector) {
 	reviewCollector.OnHTML(".search-pagination__link", func(e *colly.HTMLElement) {
 		nextUrl := e.Attr("href")
 		if canConsumePage(nextUrl, &visitedPages, visitedPagesMutex) {
-			log.Println("Visiting next page %s", nextUrl)
+			log.Println("Visiting next page ", nextUrl)
 			e.Request.Visit(nextUrl)
 		}
 	})
