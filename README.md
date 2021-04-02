@@ -2,8 +2,6 @@
 <img width="250" src="https://i.ibb.co/RbkqK08/scrapper-with-plastic-handle-500x500.jpg" />
 </p>
 
-![alt text](http://url/to/img.png)
-
 <p align="center">
   <a href="https://goreportcard.com/report/github.com/programuotojasgf/go-scrapper">
     <img src="https://goreportcard.com/badge/github.com/programuotojasgf/go-scrapper">
