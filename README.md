@@ -1,3 +1,14 @@
+<p align="center">
+<img width="250" src="https://ibb.co/RbkqK08" />
+</p>
+
+<p align="center">
+  <a href="https://goreportcard.com/report/github.com/programuotojasgf/go-scrapper">
+    <img src="https://goreportcard.com/badge/github.com/programuotojasgf/go-scrapper">
+  </a>
+</p>
+  
+
 # Shopify review scrapper
 
 go-scrapper is a scrapping for shopify reviews. The output is a database where all the 3 word phrase frequency from reviews is aggregated. A REST API to retrieve the data is a standalone project which can be found at [https://github.com/programuotojasgf/go-server](https://github.com/programuotojasgf/go-server)
