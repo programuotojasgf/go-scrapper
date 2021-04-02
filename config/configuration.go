@@ -10,14 +10,16 @@ import (
 	"strings"
 )
 
+// Configuration struct for the scrapper
 type Configuration struct {
 	ConnectionString               string
 	DatabaseName                   string
-	ReviewsUrlFirstPage            string
+	ReviewsURLFirstPage            string
 	WebsiteVisitorParallelismLimit int
 }
 
 var (
+	// Config provides static access of configuration
 	Config Configuration
 )
 

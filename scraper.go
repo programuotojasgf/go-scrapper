@@ -7,14 +7,14 @@ import (
 	"log"
 	"shopify_review_scrapper/config"
 	"shopify_review_scrapper/data"
-	"shopify_review_scrapper/phraseCounter"
+	"shopify_review_scrapper/phrasecounter"
 	"strconv"
 	"sync"
 )
 
 func main() {
 	reviewCollector := createConfiguredReviewCollector()
-	scrapeReviewsToDatabase(reviewCollector, config.Config.ReviewsUrlFirstPage)
+	scrapeReviewsToDatabase(reviewCollector, config.Config.ReviewsURLFirstPage)
 }
 
 func createConfiguredReviewCollector() *colly.Collector {
@@ -70,7 +70,7 @@ func setupScrappingAndParsingReviews(reviewCollector *colly.Collector) *sync.Wai
 }
 
 func consumeReviewFromReviewContentChannel(externalID int, waitGroup *sync.WaitGroup, reviewContentChannel <-chan string) {
-	phraseFrequency := phraseCounter.CountThreeWordPhraseFrequency(<-reviewContentChannel)
+	phraseFrequency := phrasecounter.CountThreeWordPhraseFrequency(<-reviewContentChannel)
 	data.UpsertThreeWordPhraseFrequency(phraseFrequency)
 	log.Println("Processed another review content!", externalID)
 	waitGroup.Done()

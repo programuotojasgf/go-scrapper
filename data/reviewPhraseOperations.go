@@ -9,6 +9,9 @@ import (
 	"log"
 )
 
+// UpsertThreeWordPhraseFrequency inserts or updates the 3 word phrase frequencies in the database with the given phraseFrequency map
+// If it's a new phrase it's frequency is set to the given frequency.
+// If it's an existing phrase, the existing frequency is added to the given phraseFrequency map frequency.
 func UpsertThreeWordPhraseFrequency(phraseFrequency map[string]int) {
 	for phrase, frequency := range phraseFrequency {
 		collection := getReviewPhraseCollection()

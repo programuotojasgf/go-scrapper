@@ -1,4 +1,4 @@
-package phraseCounter
+package phrasecounter
 
 import (
 	"reflect"

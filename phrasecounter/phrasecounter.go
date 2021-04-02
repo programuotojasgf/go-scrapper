@@ -1,9 +1,11 @@
-package phraseCounter
+package phrasecounter
 
 import (
 	"github.com/dlclark/regexp2"
 )
 
+// CountThreeWordPhraseFrequency returns a map with the occurrence count of 3 word phrases in the given content.
+// The key is the phrase and the value is the count of times the phrase was repeated in the given content.
 func CountThreeWordPhraseFrequency(content string) map[string]int {
 	phraseFrequency := map[string]int{}
 
@@ -14,7 +16,7 @@ func CountThreeWordPhraseFrequency(content string) map[string]int {
 			phrase := nextMatch.GroupByName("first").String() + " " +
 				nextMatch.GroupByName("second").String() + " " +
 				nextMatch.GroupByName("third").String()
-			phraseFrequency[phrase] += 1
+			phraseFrequency[phrase]++
 		}
 	}
 
