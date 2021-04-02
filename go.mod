@@ -1,4 +1,4 @@
-module github.com/x/y
+module shopify_review_scrapper
 
 go 1.14
 

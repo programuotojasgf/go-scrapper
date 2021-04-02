@@ -2,8 +2,8 @@ package data
 
 import (
 	"github.com/Kamva/mgm/v3"
-	"github.com/x/y/config"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"shopify_review_scrapper/config"
 )
 
 func init() {
