@@ -5,6 +5,7 @@ import (
 	"github.com/gocolly/colly/v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"log"
+	"shopify_review_scrapper/config"
 	"shopify_review_scrapper/data"
 	"shopify_review_scrapper/phraseCounter"
 	"strconv"
@@ -13,14 +14,14 @@ import (
 
 func main() {
 	reviewCollector := createConfiguredReviewCollector()
-	scrapeReviewsToDatabase(reviewCollector, "https://apps.shopify.com/omnisend/reviews?page=1")
+	scrapeReviewsToDatabase(reviewCollector, config.Config.ReviewsUrlFirstPage)
 }
 
 func createConfiguredReviewCollector() *colly.Collector {
 	reviewCollector := colly.NewCollector(
 		colly.Async(true),
 	)
-	reviewCollector.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 5})
+	reviewCollector.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: config.Config.WebsiteVisitorParallelismLimit})
 	return reviewCollector
 }
 

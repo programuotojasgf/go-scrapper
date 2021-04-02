@@ -1,4 +1,6 @@
 {
   "ConnectionString" : "",
-  "DatabaseName" : ""
+  "DatabaseName" : "",
+  "ReviewsUrlFirstPage" : "https://apps.shopify.com/omnisend/reviews?page=1",
+  "WebsiteVisitorParallelismLimit" : 5
 }
